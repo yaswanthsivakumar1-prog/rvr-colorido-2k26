@@ -1,26 +1,289 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ============================================
+   RVR COLORIDO 2K26 — Design System
+   "Where Talent Meets Competition"
+   ============================================ */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* Primary Brand: Royal Festival Purple */
+  --color-primary: #7C3AED;
+  --color-primary-light: #A78BFA;
+  --color-primary-dark: #5B21B6;
+
+  /* Secondary Brand: Crimson Celebration Rose */
+  --color-secondary: #F43F5E;
+  --color-secondary-light: #FB7185;
+  --color-secondary-dark: #BE123C;
+
+  /* Cultural Accent: Warm Amber & Marigold Gold */
+  --color-accent: #F59E0B;
+  --color-accent-light: #FBBF24;
+  --color-cultural: #F59E0B;
+  --color-cultural-light: #FDE68A;
+
+  /* Sports Accent: Electric Cyan & Athletic Emerald */
+  --color-sports: #06B6D4;
+  --color-sports-light: #38BDF8;
+  --color-emerald: #10B981;
+
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+
+  /* Premium Obsidian Dark Theme Surfaces */
+  --color-surface: #121226;
+  --color-surface-light: #1A1A36;
+  --color-surface-lighter: #242448;
+  --color-surface-card: rgba(255, 255, 255, 0.04);
+
+  /* High Contrast Text */
+  --color-text-primary: #F8FAFC;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted: #64748B;
+
+  /* Delicate Glass Borders */
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-light: rgba(255, 255, 255, 0.04);
+  --color-border-glow: rgba(167, 139, 250, 0.25);
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Outfit', system-ui, -apple-system, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --background: #0A0A16;
+  --foreground: #F8FAFC;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ============================================
+   Scrollbar Styling
+   ============================================ */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #0A0A16;
+}
+::-webkit-scrollbar-thumb {
+  background: #242448;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #7C3AED;
+}
+
+/* ============================================
+   Text & Selection
+   ============================================ */
+::selection {
+  background: #7C3AED;
+  color: #FFFFFF;
+}
+
+/* ============================================
+   Gradients & Brand Effects
+   ============================================ */
+
+/* Festival Hero Gradient Text */
+.gradient-text {
+  background: linear-gradient(135deg, #C084FC 0%, #F43F5E 50%, #FBBF24 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-cultural {
+  background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 50%, #EF4444 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-sports {
+  background: linear-gradient(135deg, #67E8F9 0%, #06B6D4 50%, #10B981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glassmorphism System */
+.glass {
+  background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-strong {
+  background: rgba(18, 18, 38, 0.78);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.glass-card-hover {
+  background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-card-hover:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(167, 139, 250, 0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.6), 0 0 20px rgba(124, 58, 237, 0.15);
+}
+
+/* Glow Effects */
+.glow-primary {
+  box-shadow: 0 0 30px rgba(124, 58, 237, 0.3), 0 0 80px rgba(124, 58, 237, 0.1);
+}
+
+.glow-secondary {
+  box-shadow: 0 0 30px rgba(244, 63, 94, 0.3), 0 0 80px rgba(244, 63, 94, 0.1);
+}
+
+.glow-gold {
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.3), 0 0 80px rgba(245, 158, 11, 0.1);
+}
+
+/* Atmospheric Backgrounds */
+.bg-hero-mesh {
+  background:
+    radial-gradient(circle at 15% 20%, rgba(124, 58, 237, 0.22) 0%, transparent 45%),
+    radial-gradient(circle at 85% 25%, rgba(244, 63, 94, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 50% 75%, rgba(245, 158, 11, 0.12) 0%, transparent 55%),
+    radial-gradient(circle at 50% 15%, rgba(6, 182, 212, 0.1) 0%, transparent 40%);
+}
+
+.bg-festival-pattern {
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Subtle Hover Lift */
+.hover-lift {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+/* Keyframes */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.03); }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 6s ease-in-out infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 25s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Form input styles */
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(26, 26, 54, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.875rem;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  transition: all 0.2s ease;
+}
+.form-input::placeholder {
+  color: var(--color-text-muted);
+}
+.form-input:focus {
+  outline: none;
+  background: rgba(26, 26, 54, 0.95);
+  border-color: #8B5CF6;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+}
+.form-input option {
+  background: #121226;
+  color: var(--color-text-primary);
+}
+
+/* Print Styles for Registration Ticket */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+  nav, footer, .no-print, button {
+    display: none !important;
+  }
+  .print-ticket {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    border: 2px solid #000000 !important;
+    box-shadow: none !important;
+    padding: 24px !important;
+    margin: 0 !important;
+  }
+  .print-ticket * {
+    color: #000000 !important;
+    text-shadow: none !important;
+  }
+}
+
+
+/* Ensure all dropdown options have high contrast dark background with crisp white text */
+select option {
+  background-color: #121226 !important;
+  color: #F8FAFC !important;
+}
+
+/* Global Dropdown (<select> & <option>) Contrast Styling */
+select, select option, .form-input option {
+  background-color: #121226 !important;
+  color: #FFFFFF !important;
+}
+select option:checked, .form-input option:checked {
+  background-color: #2563EB !important;
+  color: #FFFFFF !important;
+}
+select option:hover, .form-input option:hover {
+  background-color: #1E1B4B !important;
+  color: #FFFFFF !important;
 }
