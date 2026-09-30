@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -97,6 +97,32 @@ function LoginForm() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const supabase = createClient();
+
+  // Auto-redirect if user already has an active session
+  useEffect(() => {
+    async function checkExistingSession() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          const role = profile?.role || user.user_metadata?.role;
+          if (role === 'admin' || role === 'organizer' || user.email?.toLowerCase().includes('admin')) {
+            router.replace('/admin/dashboard');
+          } else {
+            router.replace(redirectParam || '/student/dashboard');
+          }
+        }
+      } catch (err) {
+        console.warn('Session check notice:', err);
+      }
+    }
+    checkExistingSession();
+  }, [redirectParam, router, supabase]);
 
   // 1. Sign In (Unified for Students and Admins)
   async function handleSignIn(e: React.FormEvent) {
@@ -327,6 +353,10 @@ function LoginForm() {
         return;
       }
 
+      // Save credentials before clearing for auto-login if needed
+      const submittedEmail = signUpForm.email.trim().toLowerCase();
+      const submittedPass = signUpForm.password;
+
       // Immediately clear all details from the form after successful sign up
       clearSignUpForm();
 
@@ -353,21 +383,24 @@ function LoginForm() {
         }
       }
 
-      // If user session exists, redirect directly to student dashboard
-      if (data?.session) {
-        setSuccessMsg('Account created successfully! Redirecting to your dashboard...');
-        setTimeout(() => {
-          router.push(redirectParam || '/student/dashboard');
-          router.refresh();
-        }, 1200);
-      } else {
-        // If Supabase project requires email confirmation
-        setSuccessMsg('Account created successfully! Please check your email to verify your account or proceed to Sign In.');
-        setLoading(false);
-        setTimeout(() => {
-          setActiveTab('signin');
-        }, 2000);
+      // If user session is not automatically returned, sign in immediately
+      if (!data?.session && submittedEmail && submittedPass) {
+        try {
+          await supabase.auth.signInWithPassword({
+            email: submittedEmail,
+            password: submittedPass,
+          });
+        } catch (loginErr) {
+          console.warn('Auto sign-in notice:', loginErr);
+        }
       }
+
+      // Immediately open student dashboard without asking user to re-enter details
+      setSuccessMsg('Account created successfully! Opening your dashboard...');
+      setTimeout(() => {
+        router.push(redirectParam || '/student/dashboard');
+        router.refresh();
+      }, 400);
     } catch (err: any) {
       const msg = err?.message || '';
       const msgLower = msg.toLowerCase();
