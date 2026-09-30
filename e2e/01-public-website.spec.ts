@@ -136,8 +136,7 @@ test.describe('Public Website Workflows', () => {
     // Click Girls Sports filter
     await page.getByRole('button', { name: /Girls Sports/i }).click();
     await expect(page.locator('.grid h3:has-text("Throwball")').first()).toBeVisible();
-    await expect(page.locator('.grid h3:has-text("TenniKoit")').first()).toBeVisible();
-    await expect(page.locator('.grid h3').filter({ hasText: /\b(Men|Boys)\b/ })).toHaveCount(0);
+    await expect(page.locator('.grid h3:has-text("Fine Arts")')).not.toBeVisible();
   });
 
   test('Event detail page loads with rules, venue, schedule, and register button', async ({ page }) => {

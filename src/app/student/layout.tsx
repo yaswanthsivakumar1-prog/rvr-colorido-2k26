@@ -42,27 +42,31 @@ export default function StudentLayout({
 
   useEffect(() => {
     async function getProfile() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .maybeSingle();
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: prof } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle();
 
-        if (prof) {
-          setStudentProfile(prof as Profile);
-        } else {
-          setStudentProfile({
-            id: user.id,
-            full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Student',
-            role: 'student',
-            college: user.user_metadata?.college || 'R.V.R. & J.C. College of Engineering',
-            roll_number: user.user_metadata?.roll_number || '',
-            department: user.user_metadata?.department || '',
-            created_at: user.created_at,
-          });
+          if (prof) {
+            setStudentProfile(prof as Profile);
+          } else {
+            setStudentProfile({
+              id: user.id,
+              full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Student',
+              role: 'student',
+              college: user.user_metadata?.college || 'R.V.R. & J.C. College of Engineering',
+              roll_number: user.user_metadata?.roll_number || '',
+              department: user.user_metadata?.department || '',
+              created_at: user.created_at,
+            });
+          }
         }
+      } catch (err) {
+        console.warn('Student layout profile check notice:', err);
       }
     }
     getProfile();

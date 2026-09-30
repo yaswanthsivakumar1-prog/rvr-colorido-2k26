@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -98,7 +98,7 @@ function DynamicQRCode({ text, size = 120 }: { text: string; size?: number }) {
   );
 }
 
-export default function StudentDashboardPage() {
+function StudentDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const regIdParam = searchParams.get('regId');
@@ -142,11 +142,27 @@ export default function StudentDashboardPage() {
         }
 
         // 2. Load authenticated user session
-        const { data: { user } } = await supabase.auth.getUser();
+        let authUser = null;
+        try {
+          const { data } = await supabase.auth.getUser();
+          authUser = data?.user || null;
+        } catch (authErr) {
+          console.warn('Auth check warning:', authErr);
+        }
 
-        if (user) {
-          const studentInfo = await getStudentData(user.id, user.email);
-          setProfile(studentInfo.profile);
+        if (authUser) {
+          const studentInfo = await getStudentData(authUser.id, authUser.email);
+          const meta = authUser.user_metadata || {};
+          const studentProfile: Profile = studentInfo.profile || {
+            id: authUser.id,
+            full_name: meta.full_name || authUser.email?.split('@')[0] || 'Student Participant',
+            role: 'student',
+            college: meta.college || 'R.V.R. & J.C. College of Engineering (Autonomous)',
+            roll_number: meta.roll_number || '',
+            department: meta.department || 'Engineering',
+            created_at: authUser.created_at || new Date().toISOString(),
+          };
+          setProfile(studentProfile);
           setRegistrations(studentInfo.registrations);
           if (studentInfo.registrations.length > 0) {
             setSelectedPass(studentInfo.registrations[0]);
@@ -532,5 +548,22 @@ export default function StudentDashboardPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function StudentDashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center space-y-3">
+            <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto" />
+            <p className="text-xs text-text-secondary">Loading student dashboard...</p>
+          </div>
+        </div>
+      }
+    >
+      <StudentDashboardContent />
+    </Suspense>
   );
 }

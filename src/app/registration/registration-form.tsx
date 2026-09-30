@@ -19,6 +19,8 @@ import {
   User,
   GraduationCap,
   Users,
+  Trophy,
+  Lock,
 } from 'lucide-react';
 import type { Event, RegistrationFormData, College } from '@/types';
 
@@ -98,6 +100,7 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [formStarted, setFormStarted] = useState(true);
 
   // Auto-detect authenticated student and pre-fill details (Section 6)
   useEffect(() => {
@@ -389,10 +392,34 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
   }
 
   // =========================================================================
-  // REGISTRATION FORM
+  // REGISTRATION FORM (Immediately visible for individuals & teams)
   // =========================================================================
   return (
     <form noValidate onSubmit={handleSubmit} className="glass rounded-3xl p-6 sm:p-10 border border-border/80 shadow-2xl space-y-6">
+      {/* Header distinguishing Event Registration from Student Portal */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-border/60 gap-3">
+        <div>
+          <span className="text-[11px] font-bold text-primary-light uppercase tracking-wider block">
+            Individual &amp; Team Event Registration
+          </span>
+          <h2 className="text-lg font-bold text-text-primary">
+            Official Festival Participation Entry Form
+          </h2>
+          <p className="text-xs text-text-muted mt-0.5">
+            Fill in your details to register for events and receive your festival pass.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold glass border border-primary/30 text-primary-light hover:text-white hover:bg-primary/20 transition-colors"
+          >
+            <User className="w-3.5 h-3.5" />
+            <span>Student Portal / Website Login →</span>
+          </Link>
+        </div>
+      </div>
+
       {/* Logged in student notice */}
       {loggedInStudent && (
         <div className="p-4 rounded-2xl bg-primary/10 border border-primary/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">

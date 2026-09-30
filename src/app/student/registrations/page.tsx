@@ -33,7 +33,14 @@ export default function StudentRegistrationsPage() {
     async function fetchRegistrations() {
       setLoading(true);
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        let user = null;
+        try {
+          const authRes = await supabase.auth.getUser();
+          user = authRes.data?.user || null;
+        } catch {
+          user = null;
+        }
+
         if (user) {
           const data = await getStudentData(user.id, user.email);
           setRegistrations(data.registrations);
@@ -42,7 +49,9 @@ export default function StudentRegistrationsPage() {
           setRegistrations(data.registrations);
         }
       } catch (err) {
-        console.error('Failed to load student registrations:', err);
+        console.warn('Student registrations data notice:', err);
+        const data = await getStudentData();
+        setRegistrations(data.registrations);
       } finally {
         setLoading(false);
       }

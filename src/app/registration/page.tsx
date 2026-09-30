@@ -1,8 +1,9 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import PageHeader from '@/components/page-header';
 import { getEvents } from '@/actions/events';
 import { getColleges } from '@/actions/colleges';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, Loader2 } from 'lucide-react';
 import RegistrationForm from './registration-form';
 
 export const metadata: Metadata = {
@@ -42,8 +43,17 @@ export default async function RegistrationPage() {
             </div>
           </div>
 
-          {/* Registration Form Component */}
-          <RegistrationForm events={events} colleges={colleges} />
+          {/* Registration Form Component wrapped in Suspense for useSearchParams */}
+          <Suspense
+            fallback={
+              <div className="glass rounded-3xl p-12 text-center border border-border flex flex-col items-center justify-center gap-3">
+                <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                <p className="text-xs text-text-secondary">Loading registration desk...</p>
+              </div>
+            }
+          >
+            <RegistrationForm events={events} colleges={colleges} />
+          </Suspense>
         </div>
       </section>
     </>

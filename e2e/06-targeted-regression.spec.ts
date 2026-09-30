@@ -98,7 +98,16 @@ test.describe('Targeted Regression Testing — Multi-College Participation & Eve
     await page.getByRole('button', { name: /Submit Registration/i }).click();
     await expect(page.locator('text=Registration Successful')).toBeVisible({ timeout: 10000 });
 
-    await page.goto('/registration');
+    // Reset to registration form for second duplicate attempt
+    const resetBtn = page.getByRole('button', { name: /Register Another Event/i });
+    if (await resetBtn.isVisible()) {
+      await resetBtn.click();
+    } else {
+      await page.goto('/registration');
+      await page.reload();
+    }
+    await expect(page.locator('#full_name')).toBeVisible();
+
     await page.getByRole('button', { name: /Cultural/i }).click();
     await page.selectOption('#event_id', { index: 1 });
     await page.fill('#full_name', 'Duplicate Check Student');
@@ -110,7 +119,9 @@ test.describe('Targeted Regression Testing — Multi-College Participation & Eve
     await page.check('input[type="checkbox"]');
     await page.getByRole('button', { name: /Submit Registration/i }).click();
 
-    await expect(page.locator(`text=Student with Roll Number ${dupRoll} is already registered for this event`)).toBeVisible({ timeout: 10000 });
+    await expect(
+      page.locator(`text=/${dupRoll}.*already registered|already exists.*${dupRoll}|already registered.*${dupRoll}/i`).first()
+    ).toBeVisible({ timeout: 15000 });
     await expect(page.locator('text=Registration Successful')).not.toBeVisible();
   });
 

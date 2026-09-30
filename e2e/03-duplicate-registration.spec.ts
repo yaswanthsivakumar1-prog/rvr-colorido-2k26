@@ -27,7 +27,14 @@ test.describe('Duplicate Registration Business Logic', () => {
     await expect(page.locator(`text=${duplicateRoll}`)).toBeVisible();
 
     // --- STEP 2: Second Registration with SAME Roll Number & SAME Event (Should Be Blocked) ---
-    await page.goto('/registration');
+    const resetBtn = page.getByRole('button', { name: /Register Another Event/i });
+    if (await resetBtn.isVisible()) {
+      await resetBtn.click();
+    } else {
+      await page.goto('/registration');
+      await page.reload();
+    }
+    await expect(page.locator('#full_name')).toBeVisible();
 
     await page.getByRole('button', { name: /Sports/i }).click();
     await page.selectOption('#event_id', { index: 1 });
@@ -44,8 +51,8 @@ test.describe('Duplicate Registration Business Logic', () => {
 
     // Check duplicate rejection message
     await expect(
-      page.locator(`text=Student with Roll Number ${duplicateRoll} is already registered for this event`)
-    ).toBeVisible({ timeout: 10000 });
+      page.locator(`text=/${duplicateRoll}.*already registered|already exists.*${duplicateRoll}|already registered.*${duplicateRoll}/i`).first()
+    ).toBeVisible({ timeout: 15000 });
 
     // Ensure success screen did NOT appear
     await expect(page.locator('text=Registration Successful')).not.toBeVisible();

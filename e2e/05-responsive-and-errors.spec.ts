@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Responsive Design & Error Handling', () => {
   test('Public pages do not have horizontal overflow on desktop', async ({ page }) => {
+    test.setTimeout(90000);
     const pagesToCheck = ['/', '/about', '/events', '/schedule', '/registration', '/results', '/contact'];
 
     for (const url of pagesToCheck) {

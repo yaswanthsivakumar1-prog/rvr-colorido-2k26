@@ -25,9 +25,9 @@ export async function getEvents(category?: string): Promise<Event[]> {
       query = query.eq('category', category);
     }
 
-    // 3.5 second timeout safeguard
+    // 1.8 second timeout safeguard
     const timeoutPromise = new Promise<{ data: null; error: Error }>((resolve) =>
-      setTimeout(() => resolve({ data: null, error: new Error('Query timeout') }), 3500)
+      setTimeout(() => resolve({ data: null, error: new Error('Query timeout') }), 1800)
     );
 
     const { data, error } = await Promise.race([query, timeoutPromise]);

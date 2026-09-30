@@ -37,12 +37,21 @@ export default function AdminLoginPage() {
         .eq('id', authData.user.id)
         .maybeSingle();
 
-      if (profile?.role === 'student') {
-        router.push('/student/dashboard');
-      } else {
+      // Strictly enforce admin/organizer access only
+      const userRole = profile?.role;
+
+      if (userRole === 'admin' || userRole === 'organizer') {
         router.push('/admin/dashboard');
+        router.refresh();
+      } else {
+        // Non-admin user: sign out and show access denied
+        await supabase.auth.signOut();
+        setError(
+          'Access denied. This portal is for administrators only. ' +
+          'Students, please use the Student Portal at /login.'
+        );
+        setLoading(false);
       }
-      router.refresh();
     } catch {
       setError('An unexpected error occurred. Please try again.');
       setLoading(false);
@@ -126,7 +135,10 @@ export default function AdminLoginPage() {
         </div>
 
         <p className="text-center text-xs text-text-muted mt-6">
-          Admin access only. Contact the organizer for credentials.
+          Admin access only.{' '}
+          <a href="/login" className="text-primary-light hover:underline font-medium">
+            Students: use the Student Portal →
+          </a>
         </p>
       </div>
     </div>

@@ -20,7 +20,7 @@ export async function getPublishedAnnouncements(): Promise<Announcement[]> {
       .order('created_at', { ascending: false });
 
     const timeoutPromise = new Promise<{ data: null; error: Error }>((resolve) =>
-      setTimeout(() => resolve({ data: null, error: new Error('Query timeout') }), 3500)
+      setTimeout(() => resolve({ data: null, error: new Error('Query timeout') }), 1800)
     );
 
     const { data, error } = await Promise.race([query, timeoutPromise]);
