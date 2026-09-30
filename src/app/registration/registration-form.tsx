@@ -283,7 +283,7 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
             <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
               <CheckCircle2 className="w-7 h-7" />
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black font-[family-name:var(--font-display)] text-white">
+            <h2 className="text-2xl sm:text-3xl font-black font-[family-name:var(--font-display)] text-text-primary">
               Registration Successful
             </h2>
             <p className="text-xs sm:text-sm text-text-secondary">
@@ -292,7 +292,7 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
           </div>
 
           {/* Simple Confirmation Card */}
-          <div className="my-6 p-6 rounded-2xl bg-[#070712] border border-border/80 space-y-4">
+          <div className="my-6 p-6 rounded-2xl bg-surface-light border border-border/80 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-border/40">
               <span className="text-xs text-text-muted uppercase font-bold tracking-wider">
                 Registration ID
@@ -551,9 +551,9 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
             errors.event_id ? 'border-red-500' : 'border-border'
           }`}
         >
-          <option className="bg-[#121226] text-white" value="">-- Choose an event --</option>
+          <option value="">-- Choose an event --</option>
           {filteredEvents.map((evt) => (
-            <option className="bg-[#121226] text-white" key={evt.id} value={evt.id}>
+            <option key={evt.id} value={evt.id}>
               {evt.name} ({evt.category === 'sports' ? `Sports - ${evt.gender}` : 'Cultural'}) — {evt.event_date}
             </option>
           ))}
@@ -608,7 +608,7 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
               }`}
             >
               {availableColleges.map((c) => (
-                <option className="bg-[#121226] text-white" key={c.id} value={c.name}>
+                <option key={c.id} value={c.name}>
                   {c.name}
                 </option>
               ))}
@@ -678,9 +678,9 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
                 errors.department ? 'border-red-500' : 'border-border'
               }`}
             >
-              <option className="bg-[#121226] text-white" value="">-- Select Department --</option>
+              <option value="">-- Select Department --</option>
               {DEPARTMENTS.map((dept) => (
-                <option className="bg-[#121226] text-white" key={dept} value={dept}>
+                <option key={dept} value={dept}>
                   {dept}
                 </option>
               ))}
@@ -701,9 +701,9 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
                 errors.year ? 'border-red-500' : 'border-border'
               }`}
             >
-              <option className="bg-[#121226] text-white" value="">-- Select Year --</option>
+              <option value="">-- Select Year --</option>
               {YEARS.map((yr) => (
-                <option className="bg-[#121226] text-white" key={yr} value={yr}>
+                <option key={yr} value={yr}>
                   {yr}
                 </option>
               ))}

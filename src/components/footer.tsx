@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   Sparkles,
   MapPin,
@@ -46,21 +49,28 @@ const quickLinks = [
 ];
 
 export default function Footer() {
+  const pathname = usePathname();
+
+  // Hide the student fest footer completely on all admin routes
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
   return (
-    <footer className="relative bg-[#070712] border-t border-border/80 overflow-hidden">
+    <footer className="relative bg-surface-light border-t border-border overflow-hidden">
       {/* Subtle top festival glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-primary-light to-transparent opacity-60" />
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/5 rounded-full blur-[140px] pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8 pb-12 border-b border-border/60">
           {/* Brand Column (Span 2 on lg) */}
           <div className="lg:col-span-2 space-y-4">
             <Link href="/" className="inline-flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary via-secondary to-accent flex items-center justify-center p-0.5 shadow-lg shadow-primary/25">
-                <div className="w-full h-full rounded-[10px] bg-[#0A0A16] flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-accent-light" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary via-secondary to-accent flex items-center justify-center p-0.5 shadow-md shadow-primary/20">
+                <div className="w-full h-full rounded-[10px] bg-white flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-primary" />
                 </div>
               </div>
               <div className="flex flex-col">

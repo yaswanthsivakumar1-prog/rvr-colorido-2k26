@@ -74,11 +74,16 @@ export default function Navbar() {
     setMoreDropdownOpen(false);
   }, [pathname]);
 
+  // Hide the public student navbar completely on all admin routes
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'py-2.5 glass-strong shadow-2xl shadow-black/60 border-b border-border'
+          ? 'py-2.5 glass-strong shadow-sm border-b border-border'
           : 'py-4 bg-transparent border-b border-transparent'
       }`}
     >
@@ -86,9 +91,9 @@ export default function Navbar() {
         <div className="flex items-center justify-between">
           {/* Logo / Brand */}
           <Link href="/" className="flex items-center gap-3 group focus:outline-none">
-            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-tr from-primary via-secondary to-accent flex items-center justify-center p-0.5 shadow-lg shadow-primary/30 group-hover:scale-105 transition-transform duration-300">
-              <div className="w-full h-full rounded-[10px] bg-[#0A0A16] flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-accent-light group-hover:rotate-12 transition-transform duration-300" />
+            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-tr from-primary via-secondary to-accent flex items-center justify-center p-0.5 shadow-md shadow-primary/20 group-hover:scale-105 transition-transform duration-300">
+              <div className="w-full h-full rounded-[10px] bg-white flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-primary group-hover:rotate-12 transition-transform duration-300" />
               </div>
             </div>
             <div className="flex flex-col">

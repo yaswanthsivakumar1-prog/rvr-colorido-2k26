@@ -1,8 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 /* ============================================
-   RVR COLORIDO 2K26 — Design System
+   RVR COLORIDO 2K26 — Professional Light Design System
    "Where Talent Meets Competition"
    ============================================ */
 
@@ -10,56 +10,57 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  /* Primary Brand: Royal Festival Purple */
-  --color-primary: #7C3AED;
-  --color-primary-light: #A78BFA;
-  --color-primary-dark: #5B21B6;
+  /* Primary Brand: Refined Executive Purple */
+  --color-primary: #6D28D9;
+  --color-primary-light: #7C3AED;
+  --color-primary-dark: #4C1D95;
 
-  /* Secondary Brand: Crimson Celebration Rose */
-  --color-secondary: #F43F5E;
-  --color-secondary-light: #FB7185;
+  /* Secondary Brand: Celebration Crimson / Rose */
+  --color-secondary: #E11D48;
+  --color-secondary-light: #F43F5E;
   --color-secondary-dark: #BE123C;
 
-  /* Cultural Accent: Warm Amber & Marigold Gold */
-  --color-accent: #F59E0B;
-  --color-accent-light: #FBBF24;
-  --color-cultural: #F59E0B;
-  --color-cultural-light: #FDE68A;
+  /* Cultural Accent: Warm Amber & Gold */
+  --color-accent: #D97706;
+  --color-accent-light: #F59E0B;
+  --color-cultural: #D97706;
+  --color-cultural-light: #F59E0B;
 
   /* Sports Accent: Electric Cyan & Athletic Emerald */
-  --color-sports: #06B6D4;
-  --color-sports-light: #38BDF8;
-  --color-emerald: #10B981;
+  --color-sports: #0891B2;
+  --color-sports-light: #0284C7;
+  --color-emerald: #059669;
 
-  --color-success: #10B981;
-  --color-warning: #F59E0B;
-  --color-error: #EF4444;
-  --color-info: #3B82F6;
+  --color-success: #16A34A;
+  --color-warning: #D97706;
+  --color-error: #DC2626;
+  --color-info: #2563EB;
 
-  /* Premium Obsidian Dark Theme Surfaces */
-  --color-surface: #121226;
-  --color-surface-light: #1A1A36;
-  --color-surface-lighter: #242448;
-  --color-surface-card: rgba(255, 255, 255, 0.04);
+  /* Professional Crisp Light Surfaces */
+  --color-surface: #FFFFFF;
+  --color-surface-light: #F8FAFC;
+  --color-surface-lighter: #F1F5F9;
+  --color-surface-dark: #F1F5F9;
+  --color-surface-card: #FFFFFF;
 
-  /* High Contrast Text */
-  --color-text-primary: #F8FAFC;
-  --color-text-secondary: #94A3B8;
+  /* High Contrast Professional Typography */
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
   --color-text-muted: #64748B;
 
-  /* Delicate Glass Borders */
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-light: rgba(255, 255, 255, 0.04);
-  --color-border-glow: rgba(167, 139, 250, 0.25);
+  /* Delicate Clean Light Borders */
+  --color-border: #E2E8F0;
+  --color-border-light: #F1F5F9;
+  --color-border-glow: rgba(109, 40, 217, 0.15);
 
-  /* Typography */
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-display: 'Outfit', system-ui, -apple-system, sans-serif;
+  /* Professional Typography Font Stacks */
+  --font-sans: 'Plus Jakarta Sans', var(--font-inter), 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Outfit', 'Plus Jakarta Sans', var(--font-outfit), system-ui, -apple-system, sans-serif;
 }
 
 :root {
-  --background: #0A0A16;
-  --foreground: #F8FAFC;
+  --background: #FFFFFF;
+  --foreground: #0F172A;
 }
 
 * {
@@ -68,6 +69,7 @@
 
 html {
   scroll-behavior: smooth;
+  color-scheme: light;
 }
 
 body {
@@ -80,6 +82,16 @@ body {
 }
 
 /* ============================================
+   Professional Heading Typography
+   ============================================ */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+/* ============================================
    Scrollbar Styling
    ============================================ */
 ::-webkit-scrollbar {
@@ -87,21 +99,21 @@ body {
   height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #0A0A16;
+  background: #F8FAFC;
 }
 ::-webkit-scrollbar-thumb {
-  background: #242448;
+  background: #CBD5E1;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #7C3AED;
+  background: #94A3B8;
 }
 
 /* ============================================
    Text & Selection
    ============================================ */
 ::selection {
-  background: #7C3AED;
+  background: #6D28D9;
   color: #FFFFFF;
 }
 
@@ -111,81 +123,84 @@ body {
 
 /* Festival Hero Gradient Text */
 .gradient-text {
-  background: linear-gradient(135deg, #C084FC 0%, #F43F5E 50%, #FBBF24 100%);
+  background: linear-gradient(135deg, #6D28D9 0%, #E11D48 50%, #D97706 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .gradient-text-cultural {
-  background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 50%, #EF4444 100%);
+  background: linear-gradient(135deg, #D97706 0%, #EA580C 50%, #DC2626 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .gradient-text-sports {
-  background: linear-gradient(135deg, #67E8F9 0%, #06B6D4 50%, #10B981 100%);
+  background: linear-gradient(135deg, #0284C7 0%, #0891B2 50%, #059669 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Glassmorphism System */
+/* Glassmorphism System for Clean Light Design */
 .glass {
-  background: rgba(255, 255, 255, 0.035);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
 }
 
 .glass-strong {
-  background: rgba(18, 18, 38, 0.78);
+  background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08);
 }
 
 .glass-card-hover {
-  background: rgba(255, 255, 255, 0.035);
+  background: #FFFFFF;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .glass-card-hover:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(167, 139, 250, 0.3);
-  transform: translateY(-4px);
-  box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.6), 0 0 20px rgba(124, 58, 237, 0.15);
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  transform: translateY(-3px);
+  box-shadow: 0 16px 30px -10px rgba(15, 23, 42, 0.1), 0 0 15px rgba(109, 40, 217, 0.08);
 }
 
-/* Glow Effects */
+/* Glow Effects tuned for light backgrounds */
 .glow-primary {
-  box-shadow: 0 0 30px rgba(124, 58, 237, 0.3), 0 0 80px rgba(124, 58, 237, 0.1);
+  box-shadow: 0 0 25px rgba(109, 40, 217, 0.15), 0 0 50px rgba(109, 40, 217, 0.05);
 }
 
 .glow-secondary {
-  box-shadow: 0 0 30px rgba(244, 63, 94, 0.3), 0 0 80px rgba(244, 63, 94, 0.1);
+  box-shadow: 0 0 25px rgba(225, 29, 72, 0.15), 0 0 50px rgba(225, 29, 72, 0.05);
 }
 
 .glow-gold {
-  box-shadow: 0 0 30px rgba(245, 158, 11, 0.3), 0 0 80px rgba(245, 158, 11, 0.1);
+  box-shadow: 0 0 25px rgba(217, 119, 6, 0.15), 0 0 50px rgba(217, 119, 6, 0.05);
 }
 
-/* Atmospheric Backgrounds */
+/* Atmospheric Backgrounds for crisp white aesthetics */
 .bg-hero-mesh {
   background:
-    radial-gradient(circle at 15% 20%, rgba(124, 58, 237, 0.22) 0%, transparent 45%),
-    radial-gradient(circle at 85% 25%, rgba(244, 63, 94, 0.18) 0%, transparent 45%),
-    radial-gradient(circle at 50% 75%, rgba(245, 158, 11, 0.12) 0%, transparent 55%),
-    radial-gradient(circle at 50% 15%, rgba(6, 182, 212, 0.1) 0%, transparent 40%);
+    radial-gradient(circle at 15% 20%, rgba(109, 40, 217, 0.07) 0%, transparent 45%),
+    radial-gradient(circle at 85% 25%, rgba(225, 29, 72, 0.06) 0%, transparent 45%),
+    radial-gradient(circle at 50% 75%, rgba(217, 119, 6, 0.04) 0%, transparent 55%),
+    radial-gradient(circle at 50% 15%, rgba(8, 145, 178, 0.05) 0%, transparent 40%);
 }
 
 .bg-festival-pattern {
   background-image:
-    radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-  background-size: 28px 28px;
+    radial-gradient(rgba(15, 23, 42, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 /* Subtle Hover Lift */
@@ -193,8 +208,8 @@ body {
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
 }
 .hover-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px -8px rgba(15, 23, 42, 0.1);
 }
 
 /* Keyframes */
@@ -223,8 +238,8 @@ body {
 .form-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  background: rgba(26, 26, 54, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
   border-radius: 0.875rem;
   font-size: 0.875rem;
   color: var(--color-text-primary);
@@ -235,12 +250,12 @@ body {
 }
 .form-input:focus {
   outline: none;
-  background: rgba(26, 26, 54, 0.95);
-  border-color: #8B5CF6;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+  background: #FFFFFF;
+  border-color: #6D28D9;
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.15);
 }
 .form-input option {
-  background: #121226;
+  background: #FFFFFF;
   color: var(--color-text-primary);
 }
 
@@ -267,23 +282,16 @@ body {
   }
 }
 
-
-/* Ensure all dropdown options have high contrast dark background with crisp white text */
-select option {
-  background-color: #121226 !important;
-  color: #F8FAFC !important;
-}
-
-/* Global Dropdown (<select> & <option>) Contrast Styling */
+/* Global Select & Option Dropdown Contrast Styling */
 select, select option, .form-input option {
-  background-color: #121226 !important;
-  color: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
 }
 select option:checked, .form-input option:checked {
-  background-color: #2563EB !important;
+  background-color: #6D28D9 !important;
   color: #FFFFFF !important;
 }
 select option:hover, .form-input option:hover {
-  background-color: #1E1B4B !important;
-  color: #FFFFFF !important;
+  background-color: #F1F5F9 !important;
+  color: #0F172A !important;
 }

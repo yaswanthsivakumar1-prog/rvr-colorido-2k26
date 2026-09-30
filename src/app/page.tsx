@@ -51,7 +51,7 @@ export default async function HomePage() {
           {/* Main Title & Subtitle */}
           <div className="space-y-4">
             <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black font-[family-name:var(--font-display)] tracking-tight leading-none">
-              <span className="text-white">COLORIDO </span>
+              <span className="text-text-primary">COLORIDO </span>
               <span className="gradient-text">2K26</span>
             </h1>
             <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-text-primary font-[family-name:var(--font-display)] tracking-wide">
@@ -82,7 +82,7 @@ export default async function HomePage() {
             </Link>
             <Link
               href="/events"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl glass border border-border/80 text-text-primary hover:text-white hover:border-primary/40 font-semibold text-sm uppercase tracking-wider transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl glass border border-border text-text-primary hover:text-primary hover:border-primary/40 hover:bg-surface-lighter font-semibold text-sm uppercase tracking-wider transition-all"
             >
               <span>Explore Events</span>
             </Link>
