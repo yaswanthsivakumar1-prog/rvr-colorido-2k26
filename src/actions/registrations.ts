@@ -185,7 +185,21 @@ export async function submitRegistration(
       duplicateQuery = duplicateQuery.or(`email.eq.${formData.email.trim().toLowerCase()},additional_info.ilike.%${rollNumber}%`);
     }
 
-    const { data: existing, error: checkError } = await duplicateQuery.limit(1);
+    let { data: existing, error: checkError } = await duplicateQuery.limit(1);
+
+    if (checkError && checkError.message?.toLowerCase().includes('user_id')) {
+      const fallbackQuery = supabase
+        .from('registrations')
+        .select('id')
+        .eq('event_id', resolvedEventId)
+        .neq('status', 'cancelled')
+        .or(`email.eq.${formData.email.trim().toLowerCase()},additional_info.ilike.%${rollNumber}%`);
+      const { data: fallbackExisting, error: fallbackError } = await fallbackQuery.limit(1);
+      if (!fallbackError) {
+        existing = fallbackExisting;
+        checkError = null;
+      }
+    }
 
     if (checkError) {
       console.error('Supabase duplicate registration check error:', checkError);

@@ -62,7 +62,19 @@ export async function getStudentData(userId?: string, email?: string): Promise<{
       query = query.eq('email', email.trim().toLowerCase());
     }
 
-    const { data: regData, error: regError } = await query;
+    let { data: regData, error: regError } = await query;
+
+    if (regError && regError.message?.toLowerCase().includes('user_id') && email) {
+      const fallback = await supabase
+        .from('registrations')
+        .select('*, event:events(*)')
+        .eq('email', email.trim().toLowerCase())
+        .order('created_at', { ascending: false });
+      if (!fallback.error) {
+        regData = fallback.data;
+        regError = null;
+      }
+    }
 
     if (regError) {
       console.warn('Supabase fetch student registrations failed:', regError.message);
