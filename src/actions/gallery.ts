@@ -11,27 +11,29 @@ export async function getGalleryImages(): Promise<GalleryImage[]> {
   }
 
   try {
-    const fetchPromise = (async () => {
-      const supabase = await createClient();
-      const { data, error } = await supabase
-        .from('gallery')
-        .select('*')
-        .order('created_at', { ascending: false });
+    const supabase = await createClient();
 
-      if (error) {
-        console.error('Error fetching gallery:', error);
-        return MOCK_GALLERY;
-      }
-      return (data as GalleryImage[]) || [];
-    })();
+    const query = supabase
+      .from('gallery')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-    const timeoutPromise = new Promise<GalleryImage[]>((resolve) =>
-      setTimeout(() => resolve(MOCK_GALLERY), 3500)
+    const timeoutPromise = new Promise<{ data: null; error: Error }>((resolve) =>
+      setTimeout(() => resolve({ data: null, error: new Error('Query timeout') }), 3500)
     );
 
-    return await Promise.race([fetchPromise, timeoutPromise]);
+    const { data, error } = await Promise.race([query, timeoutPromise]);
+
+    if (error || !data || data.length === 0) {
+      if (error) {
+        console.warn('Supabase fetch gallery failed, using fallback:', error.message || error);
+      }
+      return MOCK_GALLERY;
+    }
+
+    return (data as GalleryImage[]) || [];
   } catch (err) {
-    console.error('Exception fetching gallery:', err);
+    console.warn('Supabase fetch gallery failed, using fallback:', err);
     return MOCK_GALLERY;
   }
 }
