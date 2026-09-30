@@ -339,12 +339,13 @@ function LoginForm() {
           errLower.includes('rate') ||
           errLower.includes('limit') ||
           errLower.includes('exceeded') ||
+          errLower.includes('confirmation email') ||
+          errLower.includes('sending') ||
           (signUpError as any).status === 429
         ) {
           setError(
-            'Supabase Email Rate Limit Exceeded (HTTP 429): Too many verification emails sent recently. ' +
-            'Fix: In Supabase Dashboard → Authentication → Providers → Email, turn OFF "Confirm email". ' +
-            'Meanwhile, you can use the "Pass Lookup" tab or sign in directly.'
+            'Supabase Email Confirmation Error: Supabase could not send the verification email. ' +
+            'Fix: In Supabase Dashboard → Authentication → Providers → Email, turn OFF "Confirm email" (disabled) and click Save. Students can then sign up and log in instantly without email verification issues.'
           );
         } else {
           setError(signUpError.message);
