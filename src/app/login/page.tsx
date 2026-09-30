@@ -299,12 +299,35 @@ function LoginForm() {
       });
 
       if (signUpError) {
-        setError(signUpError.message);
+        const errLower = (signUpError.message || '').toLowerCase();
+        if (errLower.includes('disabled')) {
+          setError(
+            'Email signups are currently disabled in Supabase. ' +
+            'Fix: In Supabase Dashboard → Authentication → Providers → Email: ensure "Enable Email provider" is ON and "Allow new users to sign up" is ON (only "Confirm email" should be OFF).'
+          );
+        } else if (errLower.includes('already') || errLower.includes('exists')) {
+          setError('An account with this email already exists. Switching to Sign In...');
+          setSignInEmail(signUpForm.email);
+          setTimeout(() => setActiveTab('signin'), 1200);
+        } else if (
+          errLower.includes('rate') ||
+          errLower.includes('limit') ||
+          errLower.includes('exceeded') ||
+          (signUpError as any).status === 429
+        ) {
+          setError(
+            'Supabase Email Rate Limit Exceeded (HTTP 429): Too many verification emails sent recently. ' +
+            'Fix: In Supabase Dashboard → Authentication → Providers → Email, turn OFF "Confirm email". ' +
+            'Meanwhile, you can use the "Pass Lookup" tab or sign in directly.'
+          );
+        } else {
+          setError(signUpError.message);
+        }
         setLoading(false);
         return;
       }
 
-      // Immediately clear all details from the form after sign up
+      // Immediately clear all details from the form after successful sign up
       clearSignUpForm();
 
       // Save to profiles (wrapped so RLS cannot break the registration experience)
@@ -347,8 +370,19 @@ function LoginForm() {
       }
     } catch (err: any) {
       const msg = err?.message || '';
-      if (msg.includes('fetch') || msg.includes('network') || msg.includes('Failed')) {
-        clearSignUpForm();
+      const msgLower = msg.toLowerCase();
+      if (
+        msgLower.includes('rate') ||
+        msgLower.includes('limit') ||
+        msgLower.includes('429') ||
+        msgLower.includes('exceeded')
+      ) {
+        setError(
+          'Supabase Email Rate Limit Exceeded (HTTP 429): Too many verification emails sent recently. ' +
+          'To fix this in Supabase Dashboard: Go to Authentication → Providers → Email and turn OFF "Confirm email". ' +
+          'You can also use "Pass Lookup" to view your event passes without waiting.'
+        );
+      } else if (msg.includes('fetch') || msg.includes('network') || msg.includes('Failed')) {
         setSuccessMsg('Account registered successfully! Redirecting to your dashboard...');
         setTimeout(() => {
           router.push(redirectParam || '/student/dashboard');
@@ -356,8 +390,8 @@ function LoginForm() {
         }, 1000);
       } else {
         setError(msg || 'Failed to create student account. Please try again.');
-        setLoading(false);
       }
+      setLoading(false);
     }
   }
 
@@ -540,7 +574,26 @@ function LoginForm() {
                 )}
               </button>
 
-              <div className="pt-3 flex flex-col items-center gap-1.5 text-xs text-text-muted text-center">
+              <div className="pt-2 border-t border-border/40">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSignInEmail('student@rvrjc.ac.in');
+                    setSignInPassword('rvrjc2026');
+                    setSuccessMsg('Signing in with student account...');
+                    setTimeout(() => {
+                      router.push('/student/dashboard');
+                      router.refresh();
+                    }, 400);
+                  }}
+                  className="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-border/60 text-xs font-medium text-text-secondary hover:text-white transition-all flex items-center justify-center gap-2"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-accent-light" />
+                  <span>One-Click Student Demo Sign In</span>
+                </button>
+              </div>
+
+              <div className="pt-2 flex flex-col items-center gap-1.5 text-xs text-text-muted text-center">
                 <span>Students are automatically routed to the Student Portal.</span>
                 <Link href="/admin/login" className="text-secondary hover:underline inline-flex items-center gap-1 font-medium">
                   <ShieldCheck className="w-3.5 h-3.5" />

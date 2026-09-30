@@ -100,7 +100,8 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
-  const [formStarted, setFormStarted] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Auto-detect authenticated student and pre-fill details (Section 6)
   useEffect(() => {
@@ -110,6 +111,7 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
         const { data: { user } } = await supabase.auth.getUser();
 
         if (user) {
+          setIsAuthenticated(true);
           const { data: profile } = await supabase
             .from('profiles')
             .select('*')
@@ -139,9 +141,14 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
             college: collegeName || prev.college,
             year: yr || prev.year,
           }));
+        } else {
+          setIsAuthenticated(false);
         }
       } catch (err) {
         console.warn('Could not auto-fetch user profile for registration:', err);
+        setIsAuthenticated(false);
+      } finally {
+        setAuthChecked(true);
       }
     }
 
@@ -386,6 +393,53 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Gate: If not authenticated, prompt student to login/sign up first
+  if (authChecked && !isAuthenticated) {
+    return (
+      <div className="glass rounded-3xl p-8 sm:p-12 border border-border/80 shadow-2xl text-center space-y-6 max-w-xl mx-auto">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-primary to-accent flex items-center justify-center mx-auto shadow-xl shadow-primary/30">
+          <Lock className="w-8 h-8 text-white" />
+        </div>
+        <div className="space-y-2">
+          <div className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-primary/15 text-primary-light border border-primary/30">
+            Student Portal Authentication
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold font-[family-name:var(--font-display)] text-text-primary">
+            Student Login Required
+          </h2>
+          <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
+            To register for COLORIDO 2K26 cultural and sports events, please sign in with your student account or create an account first.
+          </p>
+        </div>
+
+        <div className="space-y-3 pt-2">
+          <Link
+            href="/login?redirect=/registration"
+            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-primary to-primary-light text-white text-sm font-bold shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all hover:scale-[1.01]"
+          >
+            <User className="w-4 h-4" />
+            <span>Sign In to Register</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+          <Link
+            href="/login?tab=signup&redirect=/registration"
+            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 border border-border text-text-primary text-sm font-bold transition-all hover:scale-[1.01]"
+          >
+            <Sparkles className="w-4 h-4 text-accent-light" />
+            <span>Create Student Account (Sign Up)</span>
+          </Link>
+          <button
+            type="button"
+            onClick={() => setIsAuthenticated(true)}
+            className="text-xs text-text-muted hover:text-text-primary transition-colors underline pt-2 block mx-auto"
+          >
+            Continue as Guest / Manual Registration
+          </button>
         </div>
       </div>
     );

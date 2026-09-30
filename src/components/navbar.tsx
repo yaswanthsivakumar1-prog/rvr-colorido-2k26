@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import {
   Menu,
   X,
@@ -42,7 +43,24 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const pathname = usePathname();
+
+  useEffect(() => {
+    try {
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data }) => {
+        setCurrentUser(data?.user || null);
+      }).catch(() => setCurrentUser(null));
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setCurrentUser(session?.user || null);
+      });
+      return () => subscription.unsubscribe();
+    } catch {
+      setCurrentUser(null);
+    }
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -197,26 +215,41 @@ export default function Navbar() {
 
           {/* Action CTAs & Mobile Hamburger */}
           <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold glass border border-border text-text-secondary hover:text-white hover:border-primary/40 transition-colors"
-            >
-              <User className="w-3.5 h-3.5 text-primary-light" />
-              <span>Portal</span>
-            </Link>
+            {currentUser ? (
+              <>
+                <Link
+                  href="/student/dashboard"
+                  className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold glass border border-border text-text-secondary hover:text-white hover:border-primary/40 transition-colors"
+                >
+                  <User className="w-3.5 h-3.5 text-primary-light" />
+                  <span>Dashboard</span>
+                </Link>
 
-            <Link
-              href="/registration"
-              className="relative inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm tracking-wide text-white uppercase overflow-hidden shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group"
-            >
-              {/* Animated glowing gradient background */}
-              <span className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-accent opacity-90 group-hover:opacity-100 transition-opacity" />
-              <span className="relative flex items-center gap-1.5 font-bold">
-                <Sparkles className="w-4 h-4 text-accent-light" />
-                <span>Register Now</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </span>
-            </Link>
+                <Link
+                  href="/registration"
+                  className="relative inline-flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm tracking-wide text-white uppercase overflow-hidden shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group"
+                >
+                  <span className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-accent opacity-90 group-hover:opacity-100 transition-opacity" />
+                  <span className="relative flex items-center gap-1.5 font-bold">
+                    <Sparkles className="w-4 h-4 text-accent-light" />
+                    <span>Register</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </Link>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="relative inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm tracking-wide text-white uppercase overflow-hidden shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group"
+              >
+                <span className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-accent opacity-90 group-hover:opacity-100 transition-opacity" />
+                <span className="relative flex items-center gap-1.5 font-bold">
+                  <User className="w-4 h-4 text-accent-light" />
+                  <span>Student Login</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </span>
+              </Link>
+            )}
 
             {/* Mobile Menu Button */}
             <button
