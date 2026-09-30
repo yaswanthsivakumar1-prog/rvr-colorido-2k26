@@ -70,7 +70,8 @@ export async function middleware(request: NextRequest) {
 
     // 1. Guard Student Routes
     if (isStudentRoute) {
-      if (!user) {
+      const hasRegId = request.nextUrl.searchParams.has('regId');
+      if (!user && !hasRegId) {
         const loginUrl = request.nextUrl.clone();
         loginUrl.pathname = '/login';
         loginUrl.searchParams.set('redirect', pathname);
@@ -110,6 +111,9 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
     if (isStudentRoute) {
+      if (request.nextUrl.searchParams.has('regId')) {
+        return supabaseResponse;
+      }
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = '/login';
       return NextResponse.redirect(loginUrl);
