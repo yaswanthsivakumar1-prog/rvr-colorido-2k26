@@ -63,8 +63,9 @@ const YEARS = ['1st Year', '2nd Year', '3rd Year', '4th Year', 'Post Graduate (P
 
 export default function RegistrationForm({ events, colleges }: RegistrationFormProps) {
   const searchParams = useSearchParams();
-  const preselectedEventId = searchParams.get('event') || '';
-  const preselectedEvent = events.find((e) => e.id === preselectedEventId);
+  const preselectedParam = searchParams.get('event') || '';
+  const preselectedEvent = events.find((e) => e.id === preselectedParam || e.slug === preselectedParam);
+  const preselectedEventId = preselectedEvent ? preselectedEvent.id : preselectedParam;
 
   const availableColleges = colleges && colleges.length > 0 ? colleges : DEFAULT_COLLEGES;
 

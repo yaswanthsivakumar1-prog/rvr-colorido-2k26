@@ -533,3 +533,60 @@ BEGIN
     (v_basket_id, 2, 'Aditya Rao (Captain)', 'Vignan Hawks', 'Vignan University', '62 - 68', 'Runner Up with fierce defense', true);
   END IF;
 END $$;
+
+-- ============================================
+-- 7. SAMPLE REGISTRATIONS (Demonstrating UUID foreign keys)
+-- ============================================
+
+DO $$
+DECLARE
+  v_fine_arts_id UUID;
+  v_cricket_id UUID;
+BEGIN
+  SELECT id INTO v_fine_arts_id FROM events WHERE slug = 'fine-arts-canvas-painting' LIMIT 1;
+  SELECT id INTO v_cricket_id FROM events WHERE slug = 'cricket-tennis-ball-men' LIMIT 1;
+
+  IF v_fine_arts_id IS NOT NULL THEN
+    INSERT INTO registrations (
+      registration_id, full_name, email, phone, college, course, year, gender, event_id, additional_info, status
+    )
+    VALUES
+    (
+      'CLR26-1001',
+      'B. Rajesh Kumar',
+      'rajesh.kumar@rvrjc.ac.in',
+      '9848123456',
+      'R.V.R. & J.C. College of Engineering (Autonomous)',
+      'Computer Science & Engineering (CSE)',
+      '3rd Year',
+      'boys',
+      v_fine_arts_id,
+      'Roll No: Y22CS501',
+      'confirmed'
+    )
+    ON CONFLICT (registration_id) DO NOTHING;
+  END IF;
+
+  IF v_cricket_id IS NOT NULL THEN
+    INSERT INTO registrations (
+      registration_id, full_name, email, phone, college, course, year, gender, event_id, team_name, participant_count, additional_info, status
+    )
+    VALUES
+    (
+      'CLR26-1002',
+      'S. Ananya',
+      'ananya.s@vrsec.edu',
+      '9848555666',
+      'VR Siddhartha Engineering College',
+      'Electronics & Communication Engineering (ECE)',
+      '2nd Year',
+      'girls',
+      v_cricket_id,
+      'VR Strikers',
+      11,
+      'Roll No: EXT22EC104',
+      'pending'
+    )
+    ON CONFLICT (registration_id) DO NOTHING;
+  END IF;
+END $$;

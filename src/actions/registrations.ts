@@ -50,7 +50,7 @@ export async function submitRegistration(
     return { success: false, error: 'You must confirm your student status and agree to event rules.' };
   }
 
-  // Duplicate registration check: Same Roll Number + Event
+  // Duplicate registration check for in-memory / local mode
   const isDuplicateInMemory = memoryRegistrations.some(
     (reg) =>
       reg.event_id === formData.event_id &&
@@ -58,17 +58,17 @@ export async function submitRegistration(
        reg.email.toLowerCase() === formData.email.trim().toLowerCase())
   );
 
-  if (isDuplicateInMemory) {
-    return {
-      success: false,
-      error: `Student with Roll Number ${rollNumber} is already registered for this event. Duplicate registration is not permitted.`,
-    };
-  }
-
   const registrationId = generateRegistrationId();
   const matchedEvent = MOCK_EVENTS.find((e) => e.id === formData.event_id);
 
   if (!isSupabaseConfigured()) {
+    if (isDuplicateInMemory) {
+      return {
+        success: false,
+        error: `Student with Roll Number ${rollNumber} is already registered for this event. Duplicate registration is not permitted.`,
+      };
+    }
+
     // Record in local demonstration state
     memoryRegistrations.unshift({
       id: `reg-${Date.now()}`,
@@ -92,16 +92,54 @@ export async function submitRegistration(
     return { success: true, registrationId };
   }
 
+  // Supabase is configured: execute real database operations
   try {
     const supabase = await createClient();
 
+    // Verify and resolve event UUID
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    let resolvedEventId = formData.event_id;
+
+    if (!UUID_REGEX.test(resolvedEventId)) {
+      // Check if event_id is a slug or mock ID, and find its Supabase record
+      const mockEvt = MOCK_EVENTS.find((e) => e.id === resolvedEventId || e.slug === resolvedEventId);
+      const lookupSlug = mockEvt?.slug || resolvedEventId;
+      const lookupName = mockEvt?.name;
+
+      const { data: dbEvent } = await supabase
+        .from('events')
+        .select('id')
+        .or(`slug.eq.${lookupSlug}${lookupName ? `,name.ilike.%${lookupName}%` : ''}`)
+        .limit(1)
+        .maybeSingle();
+
+      if (dbEvent?.id) {
+        resolvedEventId = dbEvent.id;
+      }
+    }
+
+    if (!UUID_REGEX.test(resolvedEventId)) {
+      return {
+        success: false,
+        error: 'The selected event could not be found in the database. Please select a valid event.',
+      };
+    }
+
     // Check for existing registration in Supabase
-    const { data: existing } = await supabase
+    const { data: existing, error: checkError } = await supabase
       .from('registrations')
       .select('id')
-      .eq('event_id', formData.event_id)
+      .eq('event_id', resolvedEventId)
       .or(`email.eq.${formData.email.trim().toLowerCase()},additional_info.ilike.%${rollNumber}%`)
       .limit(1);
+
+    if (checkError) {
+      console.error('Supabase duplicate registration check error:', checkError);
+      return {
+        success: false,
+        error: `Database check error: ${checkError.message}`,
+      };
+    }
 
     if (existing && existing.length > 0) {
       return {
@@ -110,7 +148,7 @@ export async function submitRegistration(
       };
     }
 
-    const insertPromise = supabase.from('registrations').insert({
+    const { error: insertError } = await supabase.from('registrations').insert({
       registration_id: registrationId,
       full_name: formData.full_name.trim(),
       email: formData.email.trim().toLowerCase(),
@@ -119,28 +157,28 @@ export async function submitRegistration(
       course: formData.department.trim(),
       year: formData.year,
       gender: formData.gender || 'open',
-      event_id: formData.event_id,
+      event_id: resolvedEventId,
       team_name: formData.team_name?.trim() || null,
       participant_count: formData.participant_count || 1,
       additional_info: `Roll No: ${rollNumber}`,
       status: 'pending',
     });
 
-    const timeoutPromise = new Promise<{ error: Error }>((resolve) =>
-      setTimeout(() => resolve({ error: new Error('Network timeout') }), 4000)
-    );
-
-    const { error } = await Promise.race([insertPromise, timeoutPromise]);
-
-    if (error) {
-      console.warn('Supabase registration insert timed out or failed, using local registration ID:', error);
-      return { success: true, registrationId };
+    if (insertError) {
+      console.error('Supabase registration insert failed:', insertError);
+      return {
+        success: false,
+        error: `Failed to record registration: ${insertError.message || 'Database error occurred. Please try again.'}`,
+      };
     }
 
     return { success: true, registrationId };
-  } catch (err) {
-    console.warn('Registration exception, falling back to local registration ID:', err);
-    return { success: true, registrationId };
+  } catch (err: any) {
+    console.error('Registration exception:', err);
+    return {
+      success: false,
+      error: `Registration failed: ${err?.message || 'An unexpected server error occurred.'}`,
+    };
   }
 }
 
