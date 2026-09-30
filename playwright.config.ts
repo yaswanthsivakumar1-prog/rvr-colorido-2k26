@@ -16,6 +16,12 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'off',
   },
+  webServer: {
+    command: 'npm run start',
+    url: 'http://localhost:3000',
+    reuseExistingServer: true,
+    timeout: 120000,
+  },
   projects: [
     {
       name: 'Desktop Chromium',

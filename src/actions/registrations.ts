@@ -50,25 +50,25 @@ export async function submitRegistration(
     return { success: false, error: 'You must confirm your student status and agree to event rules.' };
   }
 
-  // Duplicate registration check for in-memory / local mode
+  // Duplicate registration check for in-memory tracking (protects against duplicate submissions in all modes)
   const isDuplicateInMemory = memoryRegistrations.some(
     (reg) =>
-      reg.event_id === formData.event_id &&
+      (reg.event_id === formData.event_id) &&
       (reg.additional_info?.toUpperCase().includes(rollNumber) ||
        reg.email.toLowerCase() === formData.email.trim().toLowerCase())
   );
+
+  if (isDuplicateInMemory) {
+    return {
+      success: false,
+      error: `Student with Roll Number ${rollNumber} is already registered for this event. Duplicate registration is not permitted.`,
+    };
+  }
 
   const registrationId = generateRegistrationId();
   const matchedEvent = MOCK_EVENTS.find((e) => e.id === formData.event_id);
 
   if (!isSupabaseConfigured()) {
-    if (isDuplicateInMemory) {
-      return {
-        success: false,
-        error: `Student with Roll Number ${rollNumber} is already registered for this event. Duplicate registration is not permitted.`,
-      };
-    }
-
     // Record in local demonstration state
     memoryRegistrations.unshift({
       id: `reg-${Date.now()}`,
@@ -125,13 +125,67 @@ export async function submitRegistration(
       };
     }
 
-    // Check for existing registration in Supabase
-    const { data: existing, error: checkError } = await supabase
+    const isDuplicateResolved = memoryRegistrations.some(
+      (reg) =>
+        (reg.event_id === resolvedEventId || reg.event_id === formData.event_id) &&
+        (reg.additional_info?.toUpperCase().includes(rollNumber) ||
+         reg.email.toLowerCase() === formData.email.trim().toLowerCase())
+    );
+
+    if (isDuplicateResolved) {
+      return {
+        success: false,
+        error: `Student with Roll Number ${rollNumber} is already registered for this event. Duplicate registration is not permitted.`,
+      };
+    }
+
+    // Server-side Deadline & Capacity check (Sections 23 & 24)
+    const { data: dbEventData } = await supabase
+      .from('events')
+      .select('id, name, registration_open, max_participants')
+      .eq('id', resolvedEventId)
+      .maybeSingle();
+
+    if (dbEventData) {
+      if (dbEventData.registration_open === false) {
+        return {
+          success: false,
+          error: `Registration for "${dbEventData.name}" is officially closed.`,
+        };
+      }
+
+      if (dbEventData.max_participants && dbEventData.max_participants > 0) {
+        const { count: currentCount } = await supabase
+          .from('registrations')
+          .select('*', { count: 'exact', head: true })
+          .eq('event_id', resolvedEventId)
+          .neq('status', 'cancelled');
+
+        if ((currentCount || 0) >= dbEventData.max_participants) {
+          return {
+            success: false,
+            error: `Registration closed: "${dbEventData.name}" has reached maximum participant capacity (${dbEventData.max_participants}).`,
+          };
+        }
+      }
+    }
+
+    // Check for existing registration in Supabase (Sections 7 & 20)
+    const { data: { user } } = await supabase.auth.getUser();
+
+    let duplicateQuery = supabase
       .from('registrations')
       .select('id')
       .eq('event_id', resolvedEventId)
-      .or(`email.eq.${formData.email.trim().toLowerCase()},additional_info.ilike.%${rollNumber}%`)
-      .limit(1);
+      .neq('status', 'cancelled');
+
+    if (user?.id) {
+      duplicateQuery = duplicateQuery.or(`user_id.eq.${user.id},email.eq.${formData.email.trim().toLowerCase()},additional_info.ilike.%${rollNumber}%`);
+    } else {
+      duplicateQuery = duplicateQuery.or(`email.eq.${formData.email.trim().toLowerCase()},additional_info.ilike.%${rollNumber}%`);
+    }
+
+    const { data: existing, error: checkError } = await duplicateQuery.limit(1);
 
     if (checkError) {
       console.error('Supabase duplicate registration check error:', checkError);
@@ -144,11 +198,11 @@ export async function submitRegistration(
     if (existing && existing.length > 0) {
       return {
         success: false,
-        error: `A registration with this Roll Number (${rollNumber}) or email already exists for this event.`,
+        error: `Student with Roll Number ${rollNumber} is already registered for this event. Duplicate registration is not permitted.`,
       };
     }
 
-    const { error: insertError } = await supabase.from('registrations').insert({
+    let { error: insertError } = await supabase.from('registrations').insert({
       registration_id: registrationId,
       full_name: formData.full_name.trim(),
       email: formData.email.trim().toLowerCase(),
@@ -162,15 +216,65 @@ export async function submitRegistration(
       participant_count: formData.participant_count || 1,
       additional_info: `Roll No: ${rollNumber}`,
       status: 'pending',
+      ...(user?.id ? { user_id: user.id } : {}),
     });
+
+    if (insertError && insertError.message?.includes('user_id')) {
+      const retry = await supabase.from('registrations').insert({
+        registration_id: registrationId,
+        full_name: formData.full_name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone.trim(),
+        college: college,
+        course: formData.department.trim(),
+        year: formData.year,
+        gender: formData.gender || 'open',
+        event_id: resolvedEventId,
+        team_name: formData.team_name?.trim() || null,
+        participant_count: formData.participant_count || 1,
+        additional_info: `Roll No: ${rollNumber}`,
+        status: 'pending',
+      });
+      insertError = retry.error;
+    }
 
     if (insertError) {
       console.error('Supabase registration insert failed:', insertError);
+      if (
+        insertError.code === '23505' ||
+        insertError.message?.toLowerCase().includes('duplicate') ||
+        insertError.message?.toLowerCase().includes('unique')
+      ) {
+        return {
+          success: false,
+          error: `Student with Roll Number ${rollNumber} is already registered for this event. Duplicate registration is not permitted.`,
+        };
+      }
       return {
         success: false,
         error: `Failed to record registration: ${insertError.message || 'Database error occurred. Please try again.'}`,
       };
     }
+
+    // Cache registration in memory to ensure instant duplicate rejection
+    memoryRegistrations.unshift({
+      id: `reg-${Date.now()}`,
+      registration_id: registrationId,
+      full_name: formData.full_name.trim(),
+      email: formData.email.trim().toLowerCase(),
+      phone: formData.phone.trim(),
+      college: college,
+      course: formData.department.trim(),
+      year: formData.year,
+      gender: formData.gender || 'open',
+      event_id: resolvedEventId,
+      team_name: formData.team_name?.trim() || null,
+      participant_count: formData.participant_count || 1,
+      additional_info: `Roll No: ${rollNumber}`,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+      event: matchedEvent,
+    });
 
     return { success: true, registrationId };
   } catch (err: any) {
@@ -225,8 +329,8 @@ export async function updateRegistrationStatus(
   id: string,
   status: string
 ): Promise<{ success: boolean; error?: string }> {
-  const typedStatus = status as 'pending' | 'confirmed' | 'cancelled';
-  const reg = memoryRegistrations.find((r) => r.id === id);
+  const typedStatus = status as Registration['status'];
+  const reg = memoryRegistrations.find((r) => r.id === id || r.registration_id === id);
   if (reg) reg.status = typedStatus;
 
   if (!isSupabaseConfigured()) {
@@ -239,7 +343,7 @@ export async function updateRegistrationStatus(
     const { error } = await supabase
       .from('registrations')
       .update({ status: typedStatus })
-      .eq('id', id);
+      .or(`id.eq.${id},registration_id.eq.${id}`);
 
     if (error) {
       console.error('Error updating registration status:', error);
@@ -247,7 +351,114 @@ export async function updateRegistrationStatus(
     }
 
     return { success: true };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred.' };
+  }
+}
+
+/** Fetch a single registration by UUID or registration_id */
+export async function getRegistrationById(idOrCode: string): Promise<Registration | null> {
+  const cleanId = idOrCode.trim();
+
+  if (!isSupabaseConfigured()) {
+    const found = memoryRegistrations.find(
+      (r) => r.id === cleanId || r.registration_id.toUpperCase() === cleanId.toUpperCase()
+    );
+    return found || null;
+  }
+
+  try {
+    const supabase = await createClient();
+
+    // Check UUID pattern
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    let query = supabase.from('registrations').select('*, event:events(*)');
+
+    if (UUID_REGEX.test(cleanId)) {
+      query = query.eq('id', cleanId);
+    } else {
+      query = query.eq('registration_id', cleanId.toUpperCase());
+    }
+
+    const { data, error } = await query.maybeSingle();
+
+    if (error || !data) {
+      // Fallback check in memory
+      const fallback = memoryRegistrations.find(
+        (r) => r.id === cleanId || r.registration_id.toUpperCase() === cleanId.toUpperCase()
+      );
+      return fallback || null;
+    }
+
+    return data as Registration;
+  } catch (err) {
+    console.warn('Failed to fetch registration by ID:', err);
+    return null;
+  }
+}
+
+/** Cancel a student registration (student authorized) */
+export async function cancelStudentRegistration(
+  idOrCode: string
+): Promise<{ success: boolean; error?: string }> {
+  const cleanId = idOrCode.trim();
+
+  if (!isSupabaseConfigured()) {
+    const reg = memoryRegistrations.find(
+      (r) => r.id === cleanId || r.registration_id.toUpperCase() === cleanId.toUpperCase()
+    );
+    if (!reg) return { success: false, error: 'Registration record not found.' };
+    if (reg.status !== 'pending') {
+      return { success: false, error: 'Only pending registrations can be cancelled.' };
+    }
+    reg.status = 'cancelled';
+    return { success: true };
+  }
+
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { success: false, error: 'Authentication required to cancel registration.' };
+    }
+
+    // Verify registration ownership
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    let query = supabase.from('registrations').select('*');
+    if (UUID_REGEX.test(cleanId)) {
+      query = query.eq('id', cleanId);
+    } else {
+      query = query.eq('registration_id', cleanId.toUpperCase());
+    }
+
+    const { data: reg, error: fetchErr } = await query.maybeSingle();
+    if (fetchErr || !reg) {
+      return { success: false, error: 'Registration record not found.' };
+    }
+
+    if (reg.user_id && reg.user_id !== user.id && reg.email?.toLowerCase() !== user.email?.toLowerCase()) {
+      return { success: false, error: 'You are not authorized to cancel this registration.' };
+    }
+
+    if (reg.status !== 'pending') {
+      return {
+        success: false,
+        error: `Cannot cancel registration with current status "${reg.status}". Only pending registrations can be cancelled.`,
+      };
+    }
+
+    const { error: updateErr } = await supabase
+      .from('registrations')
+      .update({ status: 'cancelled' })
+      .eq('id', reg.id);
+
+    if (updateErr) {
+      return { success: false, error: updateErr.message };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Failed to cancel registration.' };
   }
 }

@@ -9,16 +9,17 @@ import { NextResponse, type NextRequest } from 'next/server';
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1. FAST PATH: If not an admin route or is the login page, bypass completely
-  if (!pathname.startsWith('/admin') || pathname.startsWith('/admin/login')) {
+  const isStudentRoute = pathname.startsWith('/student');
+  const isAdminRoute = pathname.startsWith('/admin') && !pathname.startsWith('/admin/login');
+
+  // FAST PATH: If neither student route nor guarded admin route, bypass completely
+  if (!isStudentRoute && !isAdminRoute) {
     return NextResponse.next();
   }
 
-  // 2. ADMIN ROUTE GUARD
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // If Supabase is unconfigured / placeholder, redirect to login
   const isConfigured =
     supabaseUrl &&
     (supabaseUrl.startsWith('http://') || supabaseUrl.startsWith('https://')) &&
@@ -29,10 +30,13 @@ export async function middleware(request: NextRequest) {
     !supabaseKey.includes('your_supabase');
 
   if (!isConfigured) {
-    // In unconfigured development mode, redirect to admin login
-    const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = '/admin/login';
-    return NextResponse.redirect(loginUrl);
+    // In unconfigured development mode
+    if (isAdminRoute) {
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = '/admin/login';
+      return NextResponse.redirect(loginUrl);
+    }
+    return NextResponse.next();
   }
 
   let supabaseResponse = NextResponse.next({ request });
@@ -55,7 +59,6 @@ export async function middleware(request: NextRequest) {
       },
     });
 
-    // Check authenticated user with a timeout to avoid hangs
     const timeoutPromise = new Promise<{ data: { user: null } }>((resolve) =>
       setTimeout(() => resolve({ data: { user: null } }), 3000)
     );
@@ -65,16 +68,52 @@ export async function middleware(request: NextRequest) {
       data: { user },
     } = await Promise.race([userPromise, timeoutPromise]);
 
-    if (!user) {
+    // 1. Guard Student Routes
+    if (isStudentRoute) {
+      if (!user) {
+        const loginUrl = request.nextUrl.clone();
+        loginUrl.pathname = '/login';
+        loginUrl.searchParams.set('redirect', pathname);
+        return NextResponse.redirect(loginUrl);
+      }
+      return supabaseResponse;
+    }
+
+    // 2. Guard Admin Routes
+    if (isAdminRoute) {
+      if (!user) {
+        const loginUrl = request.nextUrl.clone();
+        loginUrl.pathname = '/admin/login';
+        return NextResponse.redirect(loginUrl);
+      }
+
+      // Check role in profiles
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const userRole = profile?.role || 'student';
+      if (userRole !== 'admin' && userRole !== 'organizer') {
+        // Authenticated student trying to access admin route -> redirect to student dashboard
+        const studentUrl = request.nextUrl.clone();
+        studentUrl.pathname = '/student/dashboard';
+        return NextResponse.redirect(studentUrl);
+      }
+    }
+  } catch (error) {
+    console.error('Route auth check error:', error);
+    if (isAdminRoute) {
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = '/admin/login';
       return NextResponse.redirect(loginUrl);
     }
-  } catch (error) {
-    console.error('Admin route auth check error:', error);
-    const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = '/admin/login';
-    return NextResponse.redirect(loginUrl);
+    if (isStudentRoute) {
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = '/login';
+      return NextResponse.redirect(loginUrl);
+    }
   }
 
   return supabaseResponse;

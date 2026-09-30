@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import { submitRegistration } from '@/actions/registrations';
 import {
   Loader2,
@@ -17,6 +18,7 @@ import {
   ShieldCheck,
   User,
   GraduationCap,
+  Users,
 } from 'lucide-react';
 import type { Event, RegistrationFormData, College } from '@/types';
 
@@ -73,6 +75,12 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
     preselectedEvent ? preselectedEvent.category : 'all'
   );
 
+  const [loggedInStudent, setLoggedInStudent] = useState<{
+    name: string;
+    roll: string;
+    email: string;
+  } | null>(null);
+
   const [form, setForm] = useState({
     college: availableColleges[0]?.name || 'R.V.R. & J.C. College of Engineering',
     custom_college: '',
@@ -90,6 +98,52 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+
+  // Auto-detect authenticated student and pre-fill details (Section 6)
+  useEffect(() => {
+    async function loadStudentProfile() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          const name = profile?.full_name || user.user_metadata?.full_name || '';
+          const roll = profile?.roll_number || user.user_metadata?.roll_number || '';
+          const phone = profile?.phone || user.user_metadata?.phone || '';
+          const dept = profile?.department || user.user_metadata?.department || '';
+          const collegeName = profile?.college || user.user_metadata?.college || '';
+          const yr = user.user_metadata?.year || YEARS[2];
+
+          setLoggedInStudent({
+            name,
+            roll,
+            email: user.email || '',
+          });
+
+          setForm((prev) => ({
+            ...prev,
+            full_name: name || prev.full_name,
+            roll_number: roll || prev.roll_number,
+            phone: phone || prev.phone,
+            email: user.email || prev.email,
+            department: dept || prev.department,
+            college: collegeName || prev.college,
+            year: yr || prev.year,
+          }));
+        }
+      } catch (err) {
+        console.warn('Could not auto-fetch user profile for registration:', err);
+      }
+    }
+
+    loadStudentProfile();
+  }, []);
 
   const [successData, setSuccessData] = useState<{
     registrationId: string;
@@ -321,6 +375,13 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
               <span>Register Another Event</span>
               <ArrowRight className="w-4 h-4" />
             </button>
+            <Link
+              href="/student/dashboard"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-white/10 border border-border text-xs font-semibold text-text-primary hover:bg-white/20 transition-colors"
+            >
+              <span>Go to My Dashboard</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </div>
@@ -332,6 +393,30 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
   // =========================================================================
   return (
     <form noValidate onSubmit={handleSubmit} className="glass rounded-3xl p-6 sm:p-10 border border-border/80 shadow-2xl space-y-6">
+      {/* Logged in student notice */}
+      {loggedInStudent && (
+        <div className="p-4 rounded-2xl bg-primary/10 border border-primary/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck className="w-5 h-5 text-primary-light flex-shrink-0" />
+            <div>
+              <span className="font-semibold text-text-primary block">
+                Signed in as {loggedInStudent.name || 'Student'} ({loggedInStudent.roll || 'Verified'})
+              </span>
+              <span className="text-text-secondary text-[11px]">
+                Your student profile details have been automatically pre-filled. Only choose your event and team details below.
+              </span>
+            </div>
+          </div>
+          <Link
+            href="/student/dashboard"
+            className="text-xs text-primary-light hover:underline font-semibold flex items-center gap-1 flex-shrink-0"
+          >
+            <span>My Dashboard</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      )}
+
       {apiError && (
         <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 flex items-start gap-3 text-xs sm:text-sm text-red-300">
           <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-400" />
@@ -394,6 +479,13 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
         </select>
         {errors.event_id && <p className="text-[11px] text-red-400">{errors.event_id}</p>}
 
+        {selectedEvent && selectedEvent.registration_open === false && (
+          <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-300 flex items-center gap-2 mt-2">
+            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+            <span>Registration for &quot;{selectedEvent.name}&quot; has been closed by event coordinators.</span>
+          </div>
+        )}
+
         {selectedEvent && (
           <div className="p-3 rounded-xl bg-surface-light/40 border border-border/50 text-xs text-text-muted mt-2 space-y-1">
             <div className="flex items-center gap-2 text-text-secondary">
@@ -404,6 +496,12 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
               <MapPin className="w-3.5 h-3.5 text-secondary-light" />
               <span>Venue: <strong>{selectedEvent.venue}</strong></span>
             </div>
+            {selectedEvent.max_participants > 0 && (
+              <div className="flex items-center gap-2 text-text-muted pt-1">
+                <Users className="w-3.5 h-3.5 text-primary-light" />
+                <span>Max Participants: {selectedEvent.max_participants}</span>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -605,7 +703,7 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
       {/* Submit Button */}
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || (selectedEvent && selectedEvent.registration_open === false)}
         className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-primary via-secondary to-accent text-white font-bold text-sm uppercase tracking-wider shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
       >
         {isSubmitting ? (
@@ -613,6 +711,8 @@ export default function RegistrationForm({ events, colleges }: RegistrationFormP
             <Loader2 className="w-4 h-4 animate-spin" />
             <span>Submitting Registration...</span>
           </>
+        ) : selectedEvent && selectedEvent.registration_open === false ? (
+          <span>Registration Closed</span>
         ) : (
           <>
             <Sparkles className="w-4 h-4 text-accent-light" />

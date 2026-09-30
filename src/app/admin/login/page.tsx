@@ -19,18 +19,29 @@ export default function AdminLoginPage() {
 
     try {
       const supabase = createClient();
-      const { error: authError } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (authError) {
-        setError(authError.message);
+      if (authError || !authData?.user) {
+        setError(authError?.message || 'Invalid login credentials.');
         setLoading(false);
         return;
       }
 
-      router.push('/admin/dashboard');
+      // Check role in profiles
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', authData.user.id)
+        .maybeSingle();
+
+      if (profile?.role === 'student') {
+        router.push('/student/dashboard');
+      } else {
+        router.push('/admin/dashboard');
+      }
       router.refresh();
     } catch {
       setError('An unexpected error occurred. Please try again.');

@@ -179,10 +179,10 @@ export default function Footer() {
               Where Talent Meets Competition
             </span>
             <Link
-              href="/admin/login"
+              href="/login"
               className="text-text-muted hover:text-primary-light transition-colors flex items-center gap-1 font-medium"
             >
-              <span>Admin Portal</span>
+              <span>Portal Login</span>
               <ExternalLink className="w-3 h-3" />
             </Link>
           </div>

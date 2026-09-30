@@ -18,6 +18,8 @@ import {
   X,
   ChevronRight,
   Building2,
+  ShieldCheck,
+  Settings,
 } from 'lucide-react';
 
 const sidebarLinks = [
@@ -29,6 +31,8 @@ const sidebarLinks = [
   { href: '/admin/results', label: 'Results', icon: Award },
   { href: '/admin/gallery', label: 'Gallery', icon: Image },
   { href: '/admin/sponsors', label: 'Sponsors', icon: Heart },
+  { href: '/admin/users', label: 'Users & Roles', icon: ShieldCheck },
+  { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
 export default function AdminLayout({

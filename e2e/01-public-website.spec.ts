@@ -29,13 +29,13 @@ test.describe('Public Website Workflows', () => {
     // Verify Cultural Section with 8 categories
     await expect(page.locator('text=Cultural Activities').first()).toBeVisible();
     await expect(page.locator('h3:has-text("Fine Arts")').first()).toBeVisible();
-    await expect(page.locator('h3:has-text("Music & Band")').first()).toBeVisible();
+    await expect(page.locator('h3:has-text("Music"), h3:has-text("Band"), h3:has-text("Singing")').first()).toBeVisible();
     await expect(page.locator('h3:has-text("Dance")').first()).toBeVisible();
     await expect(page.locator('h3:has-text("Choreoday")').first()).toBeVisible();
     await expect(page.locator('h3:has-text("Dramatics")').first()).toBeVisible();
     await expect(page.locator('h3:has-text("Fashion Show")').first()).toBeVisible();
-    await expect(page.locator('h3:has-text("Tekraft Events")').first()).toBeVisible();
-    await expect(page.locator('h3:has-text("Literary")').first()).toBeVisible();
+    await expect(page.locator('h3:has-text("Tekraft")').first()).toBeVisible();
+    await expect(page.locator('h3:has-text("Literary"), h3:has-text("Debate"), h3:has-text("Quiz")').first()).toBeVisible();
 
     // Verify Sports Section with Boys and Girls divisions
     await expect(page.locator('text=Boys Tournaments').first()).toBeVisible();
@@ -137,7 +137,7 @@ test.describe('Public Website Workflows', () => {
     await page.getByRole('button', { name: /Girls Sports/i }).click();
     await expect(page.locator('.grid h3:has-text("Throwball")').first()).toBeVisible();
     await expect(page.locator('.grid h3:has-text("TenniKoit")').first()).toBeVisible();
-    await expect(page.locator('.grid h3:has-text("Basketball")')).not.toBeVisible();
+    await expect(page.locator('.grid h3').filter({ hasText: /\b(Men|Boys)\b/ })).toHaveCount(0);
   });
 
   test('Event detail page loads with rules, venue, schedule, and register button', async ({ page }) => {

@@ -112,9 +112,11 @@ export default function AdminRegistrationsPage() {
   }
 
   const statusColors: Record<string, string> = {
-    pending: 'bg-accent/20 text-accent-light',
-    confirmed: 'bg-success/20 text-success',
-    cancelled: 'bg-error/20 text-error',
+    pending: 'bg-accent/20 text-accent-light border border-accent/30',
+    confirmed: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
+    rejected: 'bg-red-500/20 text-red-400 border border-red-500/30',
+    cancelled: 'bg-gray-500/20 text-gray-400 border border-gray-500/30',
+    completed: 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
   };
 
   return (
@@ -198,7 +200,9 @@ export default function AdminRegistrationsPage() {
           <option value="all">All Status</option>
           <option value="pending">Pending</option>
           <option value="confirmed">Confirmed</option>
+          <option value="completed">Completed</option>
           <option value="cancelled">Cancelled</option>
+          <option value="rejected">Rejected</option>
         </select>
       </div>
 
@@ -272,7 +276,7 @@ export default function AdminRegistrationsPage() {
                               <ChevronDown className="w-4 h-4" />
                             </button>
                             <div className="absolute right-0 top-full mt-1 w-36 glass-strong rounded-xl py-1 hidden group-hover:block z-10 shadow-xl border border-border">
-                              {['pending', 'confirmed', 'cancelled'].map((status) => (
+                              {['pending', 'confirmed', 'rejected', 'cancelled', 'completed'].map((status) => (
                                 <button
                                   key={status}
                                   onClick={() => updateStatus(reg.id, status)}
@@ -336,8 +340,8 @@ export default function AdminRegistrationsPage() {
               ))}
             </div>
 
-            <div className="flex gap-2 mt-6 pt-4 border-t border-border/60">
-              {['pending', 'confirmed', 'cancelled'].map((status) => (
+            <div className="flex flex-wrap gap-2 mt-6 pt-4 border-t border-border/60">
+              {['pending', 'confirmed', 'rejected', 'cancelled', 'completed'].map((status) => (
                 <button
                   key={status}
                   onClick={() => updateStatus(selectedReg.id, status)}

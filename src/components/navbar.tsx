@@ -18,6 +18,7 @@ import {
   Phone,
   Info,
   ChevronDown,
+  User,
 } from 'lucide-react';
 
 const mainNavLinks = [
@@ -197,6 +198,14 @@ export default function Navbar() {
           {/* Action CTAs & Mobile Hamburger */}
           <div className="flex items-center gap-3">
             <Link
+              href="/login"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold glass border border-border text-text-secondary hover:text-white hover:border-primary/40 transition-colors"
+            >
+              <User className="w-3.5 h-3.5 text-primary-light" />
+              <span>Portal</span>
+            </Link>
+
+            <Link
               href="/registration"
               className="relative inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm tracking-wide text-white uppercase overflow-hidden shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group"
             >
@@ -275,12 +284,12 @@ export default function Navbar() {
             </div>
 
             <div className="pt-2 border-t border-border/60 flex items-center justify-between text-xs text-text-muted">
-              <span>Admin Portal</span>
+              <span>Festival Portal</span>
               <Link
-                href="/admin/login"
+                href="/login"
                 className="text-primary-light hover:underline font-medium"
               >
-                Coordinator Login →
+                Student &amp; Admin Login →
               </Link>
             </div>
           </div>

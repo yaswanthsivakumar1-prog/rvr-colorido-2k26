@@ -56,8 +56,7 @@ export interface College {
   created_at: string;
 }
 
-// ---------- Registrations ----------
-export type RegistrationStatus = 'pending' | 'confirmed' | 'cancelled';
+export type RegistrationStatus = 'pending' | 'confirmed' | 'rejected' | 'cancelled' | 'completed';
 
 export interface Registration {
   id: string;
@@ -131,12 +130,16 @@ export interface Sponsor {
 }
 
 // ---------- Profiles ----------
-export type UserRole = 'admin' | 'organizer';
+export type UserRole = 'admin' | 'organizer' | 'student';
 
 export interface Profile {
   id: string;
   full_name: string;
   role: UserRole;
+  college?: string;
+  roll_number?: string;
+  department?: string;
+  phone?: string;
   created_at: string;
 }
 

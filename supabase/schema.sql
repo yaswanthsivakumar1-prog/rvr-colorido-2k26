@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS events (
 CREATE TABLE IF NOT EXISTS registrations (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   registration_id TEXT NOT NULL UNIQUE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   full_name TEXT NOT NULL,
   email TEXT NOT NULL,
   phone TEXT NOT NULL,
@@ -44,7 +45,7 @@ CREATE TABLE IF NOT EXISTS registrations (
   team_name TEXT,
   participant_count INTEGER DEFAULT 1,
   additional_info TEXT,
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'cancelled')),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'rejected', 'cancelled', 'completed')),
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -102,12 +103,16 @@ CREATE TABLE IF NOT EXISTS sponsors (
 );
 
 -- ============================================
--- 7. PROFILES TABLE (for admin users)
+-- 7. PROFILES TABLE (for admin and student users)
 -- ============================================
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name TEXT DEFAULT '',
-  role TEXT NOT NULL DEFAULT 'admin' CHECK (role IN ('admin', 'organizer')),
+  role TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('admin', 'organizer', 'student')),
+  college TEXT DEFAULT '',
+  roll_number TEXT DEFAULT '',
+  department TEXT DEFAULT '',
+  phone TEXT DEFAULT '',
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -130,9 +135,9 @@ CREATE POLICY "Admins can insert events" ON events FOR INSERT TO authenticated W
 CREATE POLICY "Admins can update events" ON events FOR UPDATE TO authenticated USING (true);
 CREATE POLICY "Admins can delete events" ON events FOR DELETE TO authenticated USING (true);
 
--- REGISTRATIONS: Public can insert, authenticated users can read/update
+-- REGISTRATIONS: Public can insert, users can read, authenticated admins can update/delete
 CREATE POLICY "Anyone can create registration" ON registrations FOR INSERT WITH CHECK (true);
-CREATE POLICY "Admins can read registrations" ON registrations FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Public and students can read registrations" ON registrations FOR SELECT USING (true);
 CREATE POLICY "Admins can update registrations" ON registrations FOR UPDATE TO authenticated USING (true);
 CREATE POLICY "Admins can delete registrations" ON registrations FOR DELETE TO authenticated USING (true);
 
@@ -159,9 +164,10 @@ CREATE POLICY "Admins can insert sponsors" ON sponsors FOR INSERT TO authenticat
 CREATE POLICY "Admins can update sponsors" ON sponsors FOR UPDATE TO authenticated USING (true);
 CREATE POLICY "Admins can delete sponsors" ON sponsors FOR DELETE TO authenticated USING (true);
 
--- PROFILES: Only own profile visible
-CREATE POLICY "Users can read own profile" ON profiles FOR SELECT TO authenticated USING (id = (SELECT auth.uid()));
-CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE TO authenticated USING (id = (SELECT auth.uid()));
+-- PROFILES: Public/authenticated can view profiles, users can insert and update their own
+CREATE POLICY "Anyone can view profiles" ON profiles FOR SELECT USING (true);
+CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
 
 -- ============================================
 -- 9. STORAGE BUCKET FOR GALLERY
